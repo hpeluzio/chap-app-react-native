@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { Text } from 'react-native'
 
 import {
@@ -16,39 +16,37 @@ import {
   MessageText,
 } from './styles'
 
+import { ScrollView } from 'react-native'
+
+import database from '@react-native-firebase/database'
+import { getMessagesService, sendMessageService } from './firebaseService'
+
 const Chat = ({ navigation }) => {
-  const [messages, setMessages] = useState([
-    {
-      _id: 1,
-      text: 'Hello developer',
-      createdAt: new Date(),
-      user: {
-        _id: 2,
-        name: 'React Native',
-        avatar: 'https://placeimg.com/140/140/any',
-      },
-    },
-    {
-      _id: 2,
-      text: 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et',
-      createdAt: new Date(),
-      user: {
-        _id: 2,
-        name: 'React Native',
-        avatar: 'https://placeimg.com/140/140/any',
-      },
-    },
-    {
-      _id: 3,
-      text: 'lorem ipsum dolor sit amet consectetur ',
-      createdAt: new Date(),
-      user: {
-        _id: 2,
-        name: 'React Native',
-        avatar: 'https://placeimg.com/140/140/any',
-      },
-    },
-  ])
+  const scrollViewRef = useRef()
+  const [messages, setMessages] = useState([])
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const onLoadingListener = database()
+      .ref('/messages')
+      .on('value', (snapshot) => {
+        setMessages([])
+        snapshot.forEach((childSnapshot) => {
+          console.log('onLoadingListener: ', childSnapshot.val())
+          setMessages((messages) => [...messages, childSnapshot.val()])
+        })
+      })
+  }, [])
+
+  const sendMessage = useCallback(() => {
+    sendMessageService(message)
+      .then((result) => {
+        console.log('SENDED!')
+        // alert('SENDED!')
+        setMessage('')
+      })
+      .catch((err) => alert(err))
+  }, [message])
 
   return (
     <Container>
@@ -65,19 +63,27 @@ const Chat = ({ navigation }) => {
           <Text>Search</Text>
         </Right>
       </Header>
-
       <Content>
-        {messages.map((message) => {
-          return (
-            <Message key={message._id}>
-              <MessageText>{message.text}</MessageText>
-            </Message>
-          )
-        })}
+        <ScrollView
+          ref={scrollViewRef}
+          onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+        >
+          {messages.map((message) => {
+            return (
+              <Message key={message._id}>
+                <MessageText>{message.text}</MessageText>
+              </Message>
+            )
+          })}
+        </ScrollView>
       </Content>
       <Footer>
-        <InputMessage />
-        <SendMessageButton onPress={() => {}}>
+        <InputMessage
+          placeholder="Message"
+          value={message}
+          onChangeText={(text) => setMessage(text)}
+        />
+        <SendMessageButton onPress={sendMessage}>
           <Text>Send</Text>
         </SendMessageButton>
       </Footer>
