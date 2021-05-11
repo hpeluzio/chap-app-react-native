@@ -2,7 +2,10 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
 
 import styled from 'styled-components'
 
-export const Container = styled.ScrollView`
+export const Container = styled.View`
+  flex: 1;
+  align-items: center;
+  justify-content: center;
   /* margin-top: ${wp('0.5%')}px;
   margin-bottom: ${wp('5%')}px;
   margin-left: ${wp('1%')}px;
@@ -15,15 +18,19 @@ export const Container = styled.ScrollView`
 `
 
 export const ChatButton = styled.TouchableOpacity`
-  /* margin-top: ${wp('0.5%')}px;
-  margin-bottom: ${wp('5%')}px;
-  margin-left: ${wp('1%')}px;
-  margin-right: ${wp('1%')}px; */
-  /* border-color: #ddd;
-  border-bottom-width: ${wp('0.5%')}px;
-  border-left-width: ${wp('0.5%')}px;
-  border-right-width: ${wp('0.5%')}px;
-  border-top-width: ${wp('0.2%')}px; */
+  /* flex: 1; */
+  background: red;
+  align-items: flex-start;
+  justify-content: center;
+  padding: ${wp('2%')}px;
+`
+
+export const TextChat = styled.Text`
+  font-weight: bold;
+`
+
+export const Title = styled.Text`
+  font-weight: bold;
 `
 
 // export const Container = styled.SafeAreaView`

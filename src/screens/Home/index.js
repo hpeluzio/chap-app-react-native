@@ -1,13 +1,14 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { Container, ChatButton } from './styles'
+import { Container, ChatButton, TextChat, Title } from './styles'
 
 const Home = ({ navigation }) => {
   return (
     <Container>
+      <Title>Home</Title>
       <ChatButton onPress={() => navigation.navigate('Chat')}>
-        <Text>Home</Text>
+        <TextChat>Chat</TextChat>
       </ChatButton>
     </Container>
   )
