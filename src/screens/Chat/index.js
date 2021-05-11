@@ -38,14 +38,16 @@ const Chat = ({ navigation }) => {
       })
   }, [])
 
-  const sendMessage = useCallback(() => {
-    sendMessageService(message)
-      .then((result) => {
-        console.log('SENDED!')
-        // alert('SENDED!')
-        setMessage('')
-      })
-      .catch((err) => alert(err))
+  const sendMessage = useCallback(async () => {
+    try {
+      sendMessageService(message)
+      console.log('SENDED!')
+      // alert('SENDED!')
+      setMessage('')
+    } catch (err) {
+      console.log('Error! ', err)
+      alert(err)
+    }
   }, [message])
 
   return (

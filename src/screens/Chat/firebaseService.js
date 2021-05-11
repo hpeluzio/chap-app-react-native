@@ -36,8 +36,18 @@ export const sendMessageService = (message) => {
       user: {
         _id: 2,
         name: 'React Native',
-        avatar: 'https://placeimg.com/140/140/any',
+        avatar: 'https://facebook.github.io/react/img/logo_og.png',
       },
+      image: 'https://facebook.github.io/react/img/logo_og.png',
+      // You can also add a video prop:
+      video: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      // Mark the message as sent, using one tick
+      sent: true,
+      // Mark the message as received, using two tick
+      received: true,
+      // Mark the message as pending with a clock loader
+      pending: true,
+      // Any additional custom parameters are passed through
     }
 
     database()
