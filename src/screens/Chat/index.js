@@ -19,7 +19,7 @@ import {
 import { ScrollView } from 'react-native'
 
 import database from '@react-native-firebase/database'
-import { getMessagesService, sendMessageService } from './firebaseService'
+import { sendMessageService } from './firebaseService'
 
 const Chat = ({ navigation }) => {
   const scrollViewRef = useRef()
@@ -36,6 +36,10 @@ const Chat = ({ navigation }) => {
           setMessages((messages) => [...messages, childSnapshot.val()])
         })
       })
+
+    return () => {
+      database().ref.off('value', onLoadingListener)
+    }
   }, [])
 
   const sendMessage = useCallback(async () => {
@@ -46,7 +50,7 @@ const Chat = ({ navigation }) => {
       setMessage('')
     } catch (err) {
       console.log('Error! ', err)
-      alert(err)
+      // alert(err)
     }
   }, [message])
 

@@ -10,6 +10,9 @@ const Home = ({ navigation }) => {
       <ChatButton onPress={() => navigation.navigate('Chat')}>
         <TextChat>Chat</TextChat>
       </ChatButton>
+      <ChatButton onPress={() => navigation.navigate('ChatG')}>
+        <TextChat>ChatG</TextChat>
+      </ChatButton>
     </Container>
   )
 }

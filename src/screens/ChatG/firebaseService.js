@@ -9,7 +9,7 @@ export const sendMessageService = (message) => {
       text: message,
       createdAt: new Date(),
       user: {
-        _id: 1,
+        _id: 2,
         name: 'React Native',
         avatar: 'https://facebook.github.io/react/img/logo_og.png',
       },
@@ -28,6 +28,24 @@ export const sendMessageService = (message) => {
     database()
       .ref('/messages/' + key)
       .update(messageToSend)
+      .then((snapshot) => {
+        resolve(snapshot)
+      })
+      .catch((error) => reject(error))
+  })
+}
+
+export const sendMessageServiceGiftedChat = (message) => {
+  return new Promise((resolve, reject) => {
+    let key = database().ref('/messages').push().key
+
+    message._id = key
+    message.createdAt = new Date().getTime()
+    console.log('message: ', message)
+
+    database()
+      .ref('/messages/' + message._id)
+      .update(message)
       .then((snapshot) => {
         resolve(snapshot)
       })
