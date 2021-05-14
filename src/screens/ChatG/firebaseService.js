@@ -35,6 +35,40 @@ export const sendMessageService = (message) => {
   })
 }
 
+export const onAddedMessagesListener = async (callback) => {
+  const listener = database()
+    .ref('messages')
+    // .limitToLast(20)
+    .on('child_added', (snapshot) => {
+      // console.log('child_added')
+      // console.log('child_added', snapshot.val())
+      callback(snapshot.val())
+      // callback(parse(snapshot))
+    })
+
+  return () => {
+    database().ref.off('child_added', listener)
+  }
+}
+
+export const onRemovedMessagesListener = async (callback) => {
+  const listener = database()
+    .ref('messages')
+    // .limitToLast(20)
+    .on('child_removed', (snapshot) => {
+      // console.log('child_removed')
+      // console.log('child_removed', snapshot.val())
+      // console.log('child_removed._id', snapshot.val()._id)
+      callback(snapshot.val())
+      // callback(snapshot.val())
+      // callback(parse(snapshot))
+    })
+
+  return () => {
+    database().ref.off('child_removed', listener)
+  }
+}
+
 export const sendMessageServiceGiftedChat = (message) => {
   return new Promise((resolve, reject) => {
     let key = database().ref('/messages').push().key
@@ -51,4 +85,11 @@ export const sendMessageServiceGiftedChat = (message) => {
       })
       .catch((error) => reject(error))
   })
+}
+
+const parse = (snapshot) => {
+  const { createdAt, text, user } = snapshot.val()
+  const { key: _id } = snapshot
+  const message = { _id, createdAt, text, user }
+  return message
 }

@@ -1,11 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { Bubble, GiftedChat, Send } from 'react-native-gifted-chat'
-
-import { ScrollView } from 'react-native'
+import { View } from 'react-native'
 
 import database from '@react-native-firebase/database'
-import { sendMessageServiceGiftedChat } from './firebaseService'
+
+import { Bubble, GiftedChat, Send } from 'react-native-gifted-chat'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
+
+import {
+  onAddedMessagesListener,
+  onRemovedMessagesListener,
+  sendMessageServiceGiftedChat,
+} from './firebaseService'
 
 const ChatG = ({ navigation }) => {
   const [messages, setMessages] = useState([])
@@ -16,74 +23,89 @@ const ChatG = ({ navigation }) => {
     avatar: 'https://facebook.github.io/react/img/logo_og.png',
   }
 
-  // useEffect(() => {
-  //   updateMessage()
-  // }, [updateMessage])
-
   useEffect(() => {
-    const onLoadingListener = database()
-      .ref('/messages')
-      .orderByChild('createdAt')
-      .on('value', (snapshot) => {
-        setMessages([])
-        snapshot.forEach((childSnapshot) => {
-          console.log('onLoadingListener: ', childSnapshot.val())
-          setMessages((messages) => [...messages, childSnapshot.val()])
-        })
-      })
-
-    return () => {
-      database().ref.off('value', onLoadingListener)
-    }
+    onAddedMessagesListener((msg) => {
+      setMessages((prevMsgs) => GiftedChat.append(prevMsgs, msg))
+    })
   }, [])
 
-  const onSend = useCallback(
-    async (message = []) => {
+  useEffect(() => {
+    onRemovedMessagesListener((msg) => {
+      setMessages((prevMsgs) => prevMsgs.filter((message) => message._id !== msg._id))
+    })
+  }, [])
+
+  const onSend = useCallback(async (allMessagesTyped = []) => {
+    allMessagesTyped.map((message) => {
       try {
-        message.map((msg) => {
-          console.log(msg)
-          sendMessageServiceGiftedChat(msg)
-        })
-        console.log('SENDED!')
-        console.log(messages)
-        setMessages((previousMessages) => GiftedChat.append(previousMessages, messages))
+        let key = database().ref('/messages').push().key
+        message._id = key
+        message.createdAt = new Date().getTime()
+
+        database()
+          .ref('/messages/' + message._id)
+          .update(message)
+          .then((snapshot) => {
+            console.log(snapshot)
+          })
+          .catch((error) => console.error(error))
       } catch (err) {
         console.log('Error! ', err)
       }
-    },
-    [messages]
-  )
-
-  const updateMessage = useCallback(async () => {
-    database()
-      .ref('/messages')
-      .orderByChild('createdAt')
-      .on('child_added', (snapshot) => {
-        console.log('updateMessage: child_added')
-        // setMessages([])
-        // snapshot.forEach((childSnapshot) => {
-        //   console.log('onLoadingListener: ', childSnapshot.val())
-        //   setMessages((messages) => [...messages, childSnapshot.val()])
-        // })
-      })
+    })
   }, [])
 
-  // const onSend = (messages = []) => {
-  //   console.log('messages:', messages)
-  //   sendMessageServiceGiftedChat(messages)
-  //   // setMessages((previousMessages) => GiftedChat.append(previousMessages, messages))
-  // }
+  //Cor das caixas de dialogo customizado para verde
+  const renderBubble = useCallback((props) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: 'green',
+          },
+        }}
+        textStyle={{
+          right: {
+            color: '#fff',
+          },
+        }}
+      />
+    )
+  }, [])
+
+  //Botao de enviar customizado
+  const renderSend = useCallback((props) => {
+    return (
+      <Send {...props}>
+        <View>
+          <MaterialCommunityIcons
+            name="send-circle"
+            style={{ marginBottom: 5, marginRight: 5 }}
+            size={32}
+            color="green"
+            // color="#2e64e5"
+          />
+        </View>
+      </Send>
+    )
+  }, [])
+
+  //Botao de scroll para baixo customizado
+  const scrollToBottomComponent = useCallback((props) => {
+    return <FontAwesome name="angle-double-down" size={22} color="#333" />
+  }, [])
 
   return (
     <GiftedChat
       messages={messages}
       onSend={onSend}
       user={user}
-      // renderBubble={renderBubble}
+      renderBubble={renderBubble}
       alwaysShowSend
-      // renderSend={renderSend}
+      renderSend={renderSend}
       scrollToBottom
-      // scrollToBottomComponent={scrollToBottomComponent}
+      scrollToBottomComponent={scrollToBottomComponent}
     />
   )
 }
