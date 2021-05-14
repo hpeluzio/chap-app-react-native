@@ -4,15 +4,9 @@ import { View } from 'react-native'
 
 import database from '@react-native-firebase/database'
 
-import { Bubble, GiftedChat, Send } from 'react-native-gifted-chat'
+import { Bubble, GiftedChat, Send, InputToolbar } from 'react-native-gifted-chat'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-
-import {
-  onAddedMessagesListener,
-  onRemovedMessagesListener,
-  sendMessageServiceGiftedChat,
-} from './firebaseService'
 
 const ChatG = ({ navigation }) => {
   const [messages, setMessages] = useState([])
@@ -24,15 +18,32 @@ const ChatG = ({ navigation }) => {
   }
 
   useEffect(() => {
-    onAddedMessagesListener((msg) => {
-      setMessages((prevMsgs) => GiftedChat.append(prevMsgs, msg))
-    })
-  }, [])
+    const onAddedListener = database()
+      .ref('messages')
+      .on('child_added', (snapshot) => {
+        setMessages((prevMsgs) => GiftedChat.append(prevMsgs, snapshot.val()))
+      })
 
-  useEffect(() => {
-    onRemovedMessagesListener((msg) => {
-      setMessages((prevMsgs) => prevMsgs.filter((message) => message._id !== msg._id))
-    })
+    const onRemovedListener = database()
+      .ref('messages')
+      .on('child_removed', (snapshot) => {
+        setMessages((prevMsgs) => prevMsgs.filter((message) => message._id !== snapshot.val()._id))
+      })
+
+    const onChangedListener = database()
+      .ref('messages')
+      .on('child_changed', (snapshot) => {
+        // setMessages((prevMsgs) => prevMsgs.map((message) => message._id !== snapshot.val()._id))
+        setMessages((prevMsgs) =>
+          prevMsgs.map((message) => (message._id !== snapshot.val()._id ? message : snapshot.val()))
+        )
+      })
+
+    return () => {
+      database().ref('messages').off('child_added', onAddedListener)
+      database().ref('messages').off('child_removed', onRemovedListener)
+      database().ref('messages').off('child_changed', onChangedListener)
+    }
   }, [])
 
   const onSend = useCallback(async (allMessagesTyped = []) => {
@@ -81,7 +92,7 @@ const ChatG = ({ navigation }) => {
         <View>
           <MaterialCommunityIcons
             name="send-circle"
-            style={{ marginBottom: 5, marginRight: 5 }}
+            style={{ marginBottom: 5, marginRight: 5, borderWidth: 0 }}
             size={32}
             color="green"
             // color="#2e64e5"
@@ -96,6 +107,23 @@ const ChatG = ({ navigation }) => {
     return <FontAwesome name="angle-double-down" size={22} color="#333" />
   }, [])
 
+  //Input toolbar customizado
+  const renderInputToolbar = useCallback((props) => {
+    return (
+      <InputToolbar
+        {...props}
+        containerStyle={{
+          borderTopColor: 'green',
+
+          borderTopWidth: 0.5,
+
+          backgroundColor: 'white',
+          // margin: 2,
+        }}
+      />
+    )
+  }, [])
+
   return (
     <GiftedChat
       messages={messages}
@@ -106,6 +134,7 @@ const ChatG = ({ navigation }) => {
       renderSend={renderSend}
       scrollToBottom
       scrollToBottomComponent={scrollToBottomComponent}
+      // renderInputToolbar={renderInputToolbar}
     />
   )
 }
